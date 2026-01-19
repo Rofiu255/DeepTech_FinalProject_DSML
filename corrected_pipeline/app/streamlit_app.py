@@ -1,8 +1,15 @@
+import sys
+import os
 import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
 from datetime import datetime
+
+# -----------------------------
+# Fix import for src folder
+# -----------------------------
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.feature_engineering import engineer_features
 
 # -----------------------------
@@ -22,7 +29,7 @@ st.write("Enter transaction details to predict total sales.")
 # -----------------------------
 st.sidebar.header("Transaction Inputs")
 
-# Sample categorical options (you can load dynamically from your dataset)
+# Sample categorical options (dynamic options can also be loaded from dataset)
 branch_options = ['A', 'B', 'C']
 city_options = ['Yangon', 'Naypyitaw', 'Mandalay']
 customer_type_options = ['Member', 'Normal']
@@ -49,51 +56,27 @@ time_input = st.sidebar.time_input("Transaction Time", datetime.now().time())
 # -----------------------------
 # Feature Engineering
 # -----------------------------
-# Compute DayOfWeek, Month, Hour
 day_of_week = date_input.weekday()
 month = date_input.month
 hour = time_input.hour
 
-# -----------------------------
-# Create DataFrame for prediction
-# -----------------------------
-input_dict = {
+# Create initial dataframe
+input_df = pd.DataFrame({
     'Unit price': [unit_price],
     'Quantity': [quantity],
     'DayOfWeek': [day_of_week],
     'Month': [month],
     'Hour': [hour],
-    'Branch_B': [0],
-    'Branch_C': [0],
-    'City_Mandalay': [0],
-    'City_Naypyitaw': [0],
-    'Customer type_Normal': [0],
-    'Gender_Male': [0],
-    'Product line_Electronic accessories': [0],
-    'Product line_Food and beverages': [0],
-    'Product line_Fashion accessories': [0],
-    'Product line_Health and beauty': [0],
-    'Product line_Home and lifestyle': [0],
-    'Product line_Sports and travel': [0],
-    'Payment_Ewallet': [0],
-    'Payment_Credit card': [0]
-}
+    'Branch': [branch],
+    'City': [city],
+    'Customer type': [customer_type],
+    'Gender': [gender],
+    'Product line': [product_line],
+    'Payment': [payment]
+})
 
-# Map user input to dummy variables
-if branch != 'A':
-    input_dict[f'Branch_{branch}'] = [1]
-if city != 'Yangon':
-    input_dict[f'City_{city}'] = [1]
-if customer_type != 'Member':
-    input_dict[f'Customer type_{customer_type}'] = [1]
-if gender != 'Female':
-    input_dict[f'Gender_{gender}'] = [1]
-if product_line != 'Electronic accessories':  # base is any first category
-    input_dict[f'Product line_{product_line}'] = [1]
-if payment != 'Cash':
-    input_dict[f'Payment_{payment}'] = [1]
-
-input_df = pd.DataFrame(input_dict)
+# Use your feature engineering function to apply dummy encoding
+input_df = engineer_features(input_df)
 
 # -----------------------------
 # Predict
