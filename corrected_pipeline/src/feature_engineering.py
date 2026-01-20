@@ -4,21 +4,21 @@ DATA_PATH = "data/supermarket_clean.csv"
 
 def engineer_features(df=None):
     """
-    Works for:
-    - Training  → df=None (loads dataset)
-    - Inference → df=DataFrame (Streamlit input)
+    Feature engineering function for:
+    - Training (df=None → loads dataset)
+    - Inference (df provided → Streamlit input)
     """
 
     # -------------------------
-    # LOAD DATA (TRAINING MODE)
+    # LOAD DATA
     # -------------------------
     if df is None:
         df = pd.read_csv(DATA_PATH)
-
-    df = df.copy()
+    else:
+        df = df.copy()
 
     # -------------------------
-    # REMOVE LEAKAGE COLUMNS
+    # DROP LEAKAGE / ID COLUMNS
     # -------------------------
     leakage_cols = [
         "Invoice ID",
@@ -47,16 +47,17 @@ def engineer_features(df=None):
         df.drop(columns="Time", inplace=True)
 
     # -------------------------
-    # TARGET COLUMN
+    # RENAME TARGET IF NEEDED
     # -------------------------
     if "Total" in df.columns and "Sales" not in df.columns:
         df.rename(columns={"Total": "Sales"}, inplace=True)
 
     # -------------------------
-    # CATEGORICAL ENCODING
+    # ONE-HOT ENCODING
     # -------------------------
     categorical_cols = df.select_dtypes(include="object").columns.tolist()
-    df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
+    if categorical_cols:
+        df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
 
     return df
 
@@ -64,4 +65,4 @@ def engineer_features(df=None):
 if __name__ == "__main__":
     df = engineer_features()
     print(df.head())
-    print("Shape:", df.shape)
+    print("\nShape:", df.shape)
