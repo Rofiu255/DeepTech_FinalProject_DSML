@@ -1,13 +1,12 @@
 import pandas as pd
-from typing import Optional
 
 DATA_PATH = "data/supermarket_clean.csv"
 
-def engineer_features(df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
+def engineer_features(df=None):
     """
-    Feature engineering function that works for:
-    - Training (df=None → loads dataset)
-    - Inference (df provided → user input)
+    Works for:
+    - Training  → df=None (loads dataset)
+    - Inference → df=DataFrame (Streamlit input)
     """
 
     # -------------------------
@@ -19,7 +18,7 @@ def engineer_features(df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
     df = df.copy()
 
     # -------------------------
-    # DROP LEAKAGE / ID COLUMNS
+    # REMOVE LEAKAGE COLUMNS
     # -------------------------
     leakage_cols = [
         "Invoice ID",
@@ -48,7 +47,7 @@ def engineer_features(df: Optional[pd.DataFrame] = None) -> pd.DataFrame:
         df.drop(columns="Time", inplace=True)
 
     # -------------------------
-    # TARGET (TRAINING ONLY)
+    # TARGET COLUMN
     # -------------------------
     if "Total" in df.columns and "Sales" not in df.columns:
         df.rename(columns={"Total": "Sales"}, inplace=True)
