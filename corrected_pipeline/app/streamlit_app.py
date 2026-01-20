@@ -18,7 +18,7 @@ sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "..")))
 from src.feature_engineering import engineer_features
 
 # -----------------------------
-# Load trained model
+# Load trained model & training features
 # -----------------------------
 MODEL_PATH = os.path.join(BASE_DIR, "..", "outputs", "models", "random_forest_model.pkl")
 FEATURES_PATH = os.path.join(BASE_DIR, "..", "outputs", "models", "training_features.pkl")
@@ -82,18 +82,9 @@ input_df = pd.DataFrame({
 })
 
 # -----------------------------
-# Feature Engineering
+# Feature Engineering + Alignment
 # -----------------------------
-input_df = engineer_features(input_df)
-
-# -----------------------------
-# Align features with training
-# -----------------------------
-for col in training_features:
-    if col not in input_df.columns:
-        input_df[col] = 0
-
-input_df = input_df[training_features]
+input_df = engineer_features(input_df, training_features=training_features)
 
 # -----------------------------
 # Predict

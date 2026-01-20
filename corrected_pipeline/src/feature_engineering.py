@@ -3,13 +3,12 @@ import os
 
 DATA_PATH = os.path.join("data", "supermarket_clean.csv")
 
-def engineer_features(df=None):
+def engineer_features(df=None, training_features=None):
     """
     Perform feature engineering on supermarket data.
     If df is None, load the dataset from CSV (training mode).
-    Otherwise, process the passed DataFrame (inference mode).
+    If training_features is provided, align the final columns to match training.
     """
-    # Load dataset if df is None
     if df is None:
         df = pd.read_csv(DATA_PATH)
 
@@ -49,12 +48,13 @@ def engineer_features(df=None):
     if categorical_cols:
         df = pd.get_dummies(df, columns=categorical_cols, drop_first=True)
 
-    return df
+    # -------------------------
+    # ALIGN WITH TRAINING FEATURES (if provided)
+    # -------------------------
+    if training_features is not None:
+        for col in training_features:
+            if col not in df.columns:
+                df[col] = 0
+        df = df[training_features]
 
-# -------------------------
-# TEST RUN
-# -------------------------
-if __name__ == "__main__":
-    df = engineer_features()
-    print(df.head())
-    print(df.dtypes)
+    return df
