@@ -2,51 +2,33 @@ import sys
 import os
 import streamlit as st
 import pandas as pd
+import numpy as np
 import joblib
 from datetime import datetime
-import inspect
 
 # -----------------------------
-# BASE DIRECTORY
+# BASE DIRECTORY (for paths)
 # -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # -----------------------------
 # Fix import for src folder
 # -----------------------------
-SRC_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."))
-if SRC_DIR not in sys.path:
-    sys.path.append(SRC_DIR)
-
+sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "..")))
 from src.feature_engineering import engineer_features
-
-# -----------------------------
-# DEBUG: Confirm correct file
-# -----------------------------
-st.write("✅ Feature engineering file loaded from:")
-st.code(inspect.getfile(engineer_features))
 
 # -----------------------------
 # Load trained model
 # -----------------------------
-MODEL_PATH = os.path.join(
-    BASE_DIR, "..", "outputs", "models", "random_forest_model.pkl"
-)
+MODEL_PATH = os.path.join(BASE_DIR, "..", "outputs", "models", "random_forest_model.pkl")
+FEATURES_PATH = os.path.join(BASE_DIR, "..", "outputs", "models", "training_features.pkl")
 
-FEATURE_PATH = os.path.join(
-    BASE_DIR, "..", "outputs", "models", "training_features.pkl"
-)
-
-if not os.path.exists(MODEL_PATH):
-    st.error("❌ Model file not found.")
-    st.stop()
-
-if not os.path.exists(FEATURE_PATH):
-    st.error("❌ Feature list not found. Retrain model.")
+if not os.path.exists(MODEL_PATH) or not os.path.exists(FEATURES_PATH):
+    st.error("❌ Model or training features file not found. Please check deployment paths.")
     st.stop()
 
 model = joblib.load(MODEL_PATH)
-training_features = joblib.load(FEATURE_PATH)
+training_features = joblib.load(FEATURES_PATH)
 
 # -----------------------------
 # App Title
@@ -59,22 +41,22 @@ st.write("Enter transaction details to predict total sales.")
 # -----------------------------
 st.sidebar.header("Transaction Inputs")
 
-branch = st.sidebar.selectbox("Branch", ["A", "B", "C"])
-city = st.sidebar.selectbox("City", ["Yangon", "Naypyitaw", "Mandalay"])
-customer_type = st.sidebar.selectbox("Customer Type", ["Member", "Normal"])
-gender = st.sidebar.selectbox("Gender", ["Male", "Female"])
+branch = st.sidebar.selectbox("Branch", ['A', 'B', 'C'])
+city = st.sidebar.selectbox("City", ['Yangon', 'Naypyitaw', 'Mandalay'])
+customer_type = st.sidebar.selectbox("Customer Type", ['Member', 'Normal'])
+gender = st.sidebar.selectbox("Gender", ['Male', 'Female'])
 product_line = st.sidebar.selectbox(
     "Product Line",
     [
-        "Health and beauty",
-        "Electronic accessories",
-        "Home and lifestyle",
-        "Sports and travel",
-        "Food and beverages",
-        "Fashion accessories"
+        'Health and beauty',
+        'Electronic accessories',
+        'Home and lifestyle',
+        'Sports and travel',
+        'Food and beverages',
+        'Fashion accessories'
     ]
 )
-payment = st.sidebar.selectbox("Payment Method", ["Cash", "Ewallet", "Credit card"])
+payment = st.sidebar.selectbox("Payment Method", ['Cash', 'Ewallet', 'Credit card'])
 
 unit_price = st.sidebar.number_input("Unit Price", min_value=0.0, value=50.0)
 quantity = st.sidebar.number_input("Quantity", min_value=1, value=1)
@@ -100,12 +82,12 @@ input_df = pd.DataFrame({
 })
 
 # -----------------------------
-# Feature Engineering (FIXED)
+# Feature Engineering
 # -----------------------------
 input_df = engineer_features(input_df)
 
 # -----------------------------
-# Align with training features
+# Align features with training
 # -----------------------------
 for col in training_features:
     if col not in input_df.columns:
