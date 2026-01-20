@@ -110,7 +110,7 @@ input_df = pd.DataFrame({
 # -----------------------------
 # Feature Engineering
 # -----------------------------
-input_df = engineer_features(input_df)
+input_df = engineer_features(df=input_df)
 
 # -----------------------------
 # Align features with training

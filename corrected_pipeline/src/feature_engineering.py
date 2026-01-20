@@ -2,15 +2,15 @@ import pandas as pd
 
 DATA_PATH = "data/supermarket_clean.csv"
 
-def engineer_features(df=None):
+def engineer_features(df=None, *args, **kwargs):
     """
-    Works for:
-    - Training: engineer_features()
-    - Streamlit: engineer_features(input_df)
+    Robust feature engineering:
+    - engineer_features()          → training
+    - engineer_features(input_df)  → Streamlit
     """
 
     # -------------------------
-    # LOAD DATA (TRAINING MODE)
+    # LOAD DATA IF NONE PASSED
     # -------------------------
     if df is None:
         df = pd.read_csv(DATA_PATH)
@@ -45,12 +45,6 @@ def engineer_features(df=None):
         df["Time"] = pd.to_datetime(df["Time"], errors="coerce")
         df["Hour"] = df["Time"].dt.hour
         df.drop(columns="Time", inplace=True)
-
-    # -------------------------
-    # TARGET COLUMN NORMALIZATION
-    # -------------------------
-    if "Total" in df.columns and "Sales" not in df.columns:
-        df.rename(columns={"Total": "Sales"}, inplace=True)
 
     # -------------------------
     # ONE-HOT ENCODING
