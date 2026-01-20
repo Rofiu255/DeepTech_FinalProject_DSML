@@ -15,7 +15,7 @@ from src.feature_engineering import engineer_features
 # -----------------------------
 # Load trained model
 # -----------------------------
-MODEL_PATH = "../outputs/models/random_forest_model.pkl"
+MODEL_PATH = "models/random_forest_model.pkl"
 model = joblib.load(MODEL_PATH)
 
 # -----------------------------
