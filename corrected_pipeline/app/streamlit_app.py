@@ -2,46 +2,41 @@ import sys
 import os
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
 from datetime import datetime
 
 # -----------------------------
-# BASE DIRECTORY (CRITICAL FIX)
+# BASE DIRECTORY
 # -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # -----------------------------
-# Fix import for src folder
+# Fix import path
 # -----------------------------
 sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "..")))
 from src.feature_engineering import engineer_features
 
 # -----------------------------
-# Load trained model (SAFE PATH)
+# MODEL & FEATURE PATHS
 # -----------------------------
-MODEL_PATH = os.path.join(
-    BASE_DIR,
-    "..",
-    "outputs",
-    "models",
-    "random_forest_model.pkl"
-)
+MODEL_PATH = os.path.join(BASE_DIR, "..", "outputs", "models", "random_forest_model.pkl")
+FEATURE_PATH = os.path.join(BASE_DIR, "..", "outputs", "models", "training_features.pkl")
 
-if not os.path.exists(MODEL_PATH):
-    st.error("❌ Model file not found. Please check deployment paths.")
+if not os.path.exists(MODEL_PATH) or not os.path.exists(FEATURE_PATH):
+    st.error("❌ Model or feature file not found. Please retrain the model.")
     st.stop()
 
 model = joblib.load(MODEL_PATH)
+training_features = joblib.load(FEATURE_PATH)
 
 # -----------------------------
-# App Title
+# App UI
 # -----------------------------
 st.title("🛒 Supermarket Sales Prediction")
-st.write("Enter transaction details to predict total sales.")
+st.write("Predict total sales from transaction details")
 
 # -----------------------------
-# User Inputs
+# Sidebar Inputs
 # -----------------------------
 st.sidebar.header("Transaction Inputs")
 
@@ -69,7 +64,7 @@ date_input = st.sidebar.date_input("Transaction Date", datetime.today())
 time_input = st.sidebar.time_input("Transaction Time", datetime.now().time())
 
 # -----------------------------
-# Feature Engineering
+# Create Input DataFrame
 # -----------------------------
 input_df = pd.DataFrame({
     "Unit price": [unit_price],
@@ -85,13 +80,19 @@ input_df = pd.DataFrame({
     "Payment": [payment],
 })
 
+# -----------------------------
+# Feature Engineering
+# -----------------------------
 input_df = engineer_features(input_df)
 
 # -----------------------------
-# Align features with training
+# ALIGN FEATURES (CRITICAL)
 # -----------------------------
-model_features = model.feature_names_in_
-input_df = input_df.reindex(columns=model_features, fill_value=0)
+for col in training_features:
+    if col not in input_df.columns:
+        input_df[col] = 0
+
+input_df = input_df[training_features]
 
 # -----------------------------
 # Predict

@@ -11,14 +11,14 @@ from feature_engineering import engineer_features
 # -------------------------
 # PATHS
 # -------------------------
-OUTPUT_MODEL_PATH = "outputs/models/"
+OUTPUT_MODEL_PATH = "outputs/models"
 os.makedirs(OUTPUT_MODEL_PATH, exist_ok=True)
 
 # -------------------------
 # TRAINING FUNCTION
 # -------------------------
 def train_models():
-    # Load engineered (LEAK-FREE) dataset
+    # Load engineered (leak-free) dataset
     df = engineer_features()
 
     # -------------------------
@@ -27,8 +27,9 @@ def train_models():
     X = df.drop("Sales", axis=1)
     y = df["Sales"]
 
-    # Save feature names for Streamlit inference
-    joblib.dump(X.columns.tolist(), f"{OUTPUT_MODEL_PATH}/training_features.pkl")
+    # 🔐 SAVE FEATURE NAMES (CRITICAL FOR STREAMLIT)
+    feature_names = X.columns.tolist()
+    joblib.dump(feature_names, os.path.join(OUTPUT_MODEL_PATH, "training_features.pkl"))
 
     # -------------------------
     # TRAIN / TEST SPLIT
@@ -84,8 +85,8 @@ def train_models():
     # -------------------------
     # SAVE MODELS
     # -------------------------
-    joblib.dump(rf, f"{OUTPUT_MODEL_PATH}/random_forest_model.pkl")
-    joblib.dump(xgb, f"{OUTPUT_MODEL_PATH}/xgb_model.pkl")
+    joblib.dump(rf, os.path.join(OUTPUT_MODEL_PATH, "random_forest_model.pkl"))
+    joblib.dump(xgb, os.path.join(OUTPUT_MODEL_PATH, "xgb_model.pkl"))
 
     print("\nModels saved to:", OUTPUT_MODEL_PATH)
 
