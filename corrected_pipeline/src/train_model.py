@@ -18,14 +18,17 @@ os.makedirs(OUTPUT_MODEL_PATH, exist_ok=True)
 # TRAINING FUNCTION
 # -------------------------
 def train_models():
-    # Load engineered (LEAK-FREE) features
+    # Load engineered (LEAK-FREE) dataset
     df = engineer_features()
 
     # -------------------------
     # TARGET & FEATURES
     # -------------------------
-    X = df.drop('Sales', axis=1)
-    y = df['Sales']
+    X = df.drop("Sales", axis=1)
+    y = df["Sales"]
+
+    # Save feature names for Streamlit inference
+    joblib.dump(X.columns.tolist(), f"{OUTPUT_MODEL_PATH}/training_features.pkl")
 
     # -------------------------
     # TRAIN / TEST SPLIT
@@ -58,7 +61,7 @@ def train_models():
     # =========================
     # XGBOOST
     # =========================
-    xgb_model = XGBRegressor(
+    xgb = XGBRegressor(
         n_estimators=300,
         max_depth=6,
         learning_rate=0.05,
@@ -67,9 +70,9 @@ def train_models():
         random_state=42,
         objective="reg:squarederror"
     )
-    xgb_model.fit(X_train, y_train)
+    xgb.fit(X_train, y_train)
 
-    y_pred_xgb = xgb_model.predict(X_test)
+    y_pred_xgb = xgb.predict(X_test)
     rmse_xgb = np.sqrt(mean_squared_error(y_test, y_pred_xgb))
     r2_xgb = r2_score(y_test, y_pred_xgb)
 
@@ -81,14 +84,11 @@ def train_models():
     # -------------------------
     # SAVE MODELS
     # -------------------------
-    joblib.dump(rf, OUTPUT_MODEL_PATH + "random_forest_model.pkl")
-    joblib.dump(xgb_model, OUTPUT_MODEL_PATH + "xgb_model.pkl")
+    joblib.dump(rf, f"{OUTPUT_MODEL_PATH}/random_forest_model.pkl")
+    joblib.dump(xgb, f"{OUTPUT_MODEL_PATH}/xgb_model.pkl")
 
     print("\nModels saved to:", OUTPUT_MODEL_PATH)
 
-    # -------------------------
-    # RETURN METRICS (OPTIONAL)
-    # -------------------------
     return {
         "RandomForest": {"RMSE": rmse_rf, "R2": r2_rf},
         "XGBoost": {"RMSE": rmse_xgb, "R2": r2_xgb}
