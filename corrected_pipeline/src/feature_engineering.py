@@ -1,18 +1,20 @@
 import pandas as pd
+import os
 
-DATA_PATH = "data/supermarket_clean.csv"
+DATA_PATH = os.path.join("data", "supermarket_clean.csv")
 
 def engineer_features(df=None):
     """
     Perform feature engineering on supermarket data.
-    If df is None, load data from CSV (training mode).
+    If df is None, load the dataset from CSV (training mode).
     Otherwise, process the passed DataFrame (inference mode).
     """
+    # Load dataset if df is None
     if df is None:
         df = pd.read_csv(DATA_PATH)
 
     # -------------------------
-    # DROP ID / LEAKAGE COLUMNS
+    # DROP LEAKAGE COLUMNS
     # -------------------------
     drop_cols = [
         'Invoice ID',
@@ -50,7 +52,7 @@ def engineer_features(df=None):
     return df
 
 # -------------------------
-# Test run
+# TEST RUN
 # -------------------------
 if __name__ == "__main__":
     df = engineer_features()
