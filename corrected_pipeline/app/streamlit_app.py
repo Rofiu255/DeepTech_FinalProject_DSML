@@ -4,43 +4,68 @@ import streamlit as st
 import pandas as pd
 import joblib
 from datetime import datetime
+import inspect
 
 # -----------------------------
-# BASE DIRECTORY
+# BASE DIRECTORY (CRITICAL)
 # -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # -----------------------------
-# IMPORT FEATURE ENGINEERING
+# Fix import for src folder
 # -----------------------------
-sys.path.append(os.path.abspath(os.path.join(BASE_DIR, "..")))
+SRC_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."))
+if SRC_DIR not in sys.path:
+    sys.path.append(SRC_DIR)
+
 from src.feature_engineering import engineer_features
 
 # -----------------------------
-# LOAD MODEL & FEATURE LIST
+# DEBUG: Confirm correct file
 # -----------------------------
-MODEL_PATH = os.path.join(BASE_DIR, "..", "outputs", "models", "random_forest_model.pkl")
-FEATURES_PATH = os.path.join(BASE_DIR, "..", "outputs", "models", "training_features.pkl")
+st.write("✅ Feature engineering file loaded from:")
+st.code(inspect.getfile(engineer_features))
 
-if not os.path.exists(MODEL_PATH) or not os.path.exists(FEATURES_PATH):
-    st.error("❌ Model or feature file not found. Please retrain and redeploy.")
+# -----------------------------
+# Load trained model
+# -----------------------------
+MODEL_PATH = os.path.join(
+    BASE_DIR,
+    "..",
+    "outputs",
+    "models",
+    "random_forest_model.pkl"
+)
+
+FEATURE_PATH = os.path.join(
+    BASE_DIR,
+    "..",
+    "outputs",
+    "models",
+    "training_features.pkl"
+)
+
+if not os.path.exists(MODEL_PATH):
+    st.error("❌ Model file not found. Please check deployment paths.")
+    st.stop()
+
+if not os.path.exists(FEATURE_PATH):
+    st.error("❌ Feature list file not found. Please retrain the model.")
     st.stop()
 
 model = joblib.load(MODEL_PATH)
-training_features = joblib.load(FEATURES_PATH)
+training_features = joblib.load(FEATURE_PATH)
 
 # -----------------------------
-# APP UI
+# App Title
 # -----------------------------
-st.set_page_config(page_title="Supermarket Sales Predictor", layout="centered")
-
 st.title("🛒 Supermarket Sales Prediction")
-st.write("Predict total sales for a supermarket transaction.")
+st.write("Enter transaction details to predict total sales.")
 
 # -----------------------------
-# SIDEBAR INPUTS
+# Sidebar Inputs
 # -----------------------------
-st.sidebar.header("Transaction Details")
+st.sidebar.header("Transaction Inputs")
 
 branch = st.sidebar.selectbox("Branch", ["A", "B", "C"])
 city = st.sidebar.selectbox("City", ["Yangon", "Naypyitaw", "Mandalay"])
@@ -66,7 +91,7 @@ date_input = st.sidebar.date_input("Transaction Date", datetime.today())
 time_input = st.sidebar.time_input("Transaction Time", datetime.now().time())
 
 # -----------------------------
-# CREATE INPUT DATAFRAME
+# Create input DataFrame
 # -----------------------------
 input_df = pd.DataFrame({
     "Unit price": [unit_price],
@@ -79,16 +104,16 @@ input_df = pd.DataFrame({
     "Customer type": [customer_type],
     "Gender": [gender],
     "Product line": [product_line],
-    "Payment": [payment]
+    "Payment": [payment],
 })
 
 # -----------------------------
-# FEATURE ENGINEERING
+# Feature Engineering
 # -----------------------------
 input_df = engineer_features(input_df)
 
 # -----------------------------
-# ALIGN FEATURES (CRITICAL)
+# Align features with training
 # -----------------------------
 for col in training_features:
     if col not in input_df.columns:
@@ -97,7 +122,7 @@ for col in training_features:
 input_df = input_df[training_features]
 
 # -----------------------------
-# PREDICTION
+# Predict
 # -----------------------------
 if st.button("Predict Sales"):
     prediction = model.predict(input_df)[0]
