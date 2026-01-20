@@ -7,7 +7,7 @@ from datetime import datetime
 import inspect
 
 # -----------------------------
-# BASE DIRECTORY (CRITICAL)
+# BASE DIRECTORY
 # -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -30,27 +30,19 @@ st.code(inspect.getfile(engineer_features))
 # Load trained model
 # -----------------------------
 MODEL_PATH = os.path.join(
-    BASE_DIR,
-    "..",
-    "outputs",
-    "models",
-    "random_forest_model.pkl"
+    BASE_DIR, "..", "outputs", "models", "random_forest_model.pkl"
 )
 
 FEATURE_PATH = os.path.join(
-    BASE_DIR,
-    "..",
-    "outputs",
-    "models",
-    "training_features.pkl"
+    BASE_DIR, "..", "outputs", "models", "training_features.pkl"
 )
 
 if not os.path.exists(MODEL_PATH):
-    st.error("❌ Model file not found. Please check deployment paths.")
+    st.error("❌ Model file not found.")
     st.stop()
 
 if not os.path.exists(FEATURE_PATH):
-    st.error("❌ Feature list file not found. Please retrain the model.")
+    st.error("❌ Feature list not found. Retrain model.")
     st.stop()
 
 model = joblib.load(MODEL_PATH)
@@ -108,12 +100,12 @@ input_df = pd.DataFrame({
 })
 
 # -----------------------------
-# Feature Engineering
+# Feature Engineering (FIXED)
 # -----------------------------
-input_df = engineer_features(df=input_df)
+input_df = engineer_features(input_df)
 
 # -----------------------------
-# Align features with training
+# Align with training features
 # -----------------------------
 for col in training_features:
     if col not in input_df.columns:
